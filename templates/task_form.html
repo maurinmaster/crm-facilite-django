@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">Nova Tarefa</div>
+    <div class="muted">Criação de demandas</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/">Dashboard</a>
+    <a class="btn secondary" href="/tasks/settings/">Configurações</a>
+  </div>
+</div>
+
+<div class="card" style="padding:14px">
+  {% if error %}<div class="muted" style="color:#b91c1c;font-weight:700">{{ error }}</div>{% endif %}
+  <form id="task-form" method="post" enctype="multipart/form-data" style="display:grid;gap:12px">
+    {% csrf_token %}
+    <input class="input" name="title" placeholder="Título" required />
+
+    <div class="row">
+      <div style="flex:1;min-width:220px">
+        <div class="muted" style="font-weight:800">Cliente</div>
+        <select class="input" name="client_id" required>
+          <option value="">Selecione...</option>
+          {% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div class="muted" style="font-weight:800">Estágio</div>
+        <select class="input" name="stage_id" required>
+          <option value="">Selecione...</option>
+          {% for s in stages %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1;min-width:220px">
+        <div class="muted" style="font-weight:800">Workspace</div>
+        <select class="input" name="workspace_id">
+          <option value="">—</option>
+          {% for w in workspaces %}<option value="{{ w.id }}">{{ w.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div class="muted" style="font-weight:800">Equipe</div>
+        <select class="input" name="team_id">
+          <option value="">—</option>
+          {% for t in teams %}<option value="{{ t.id }}">{{ t.workspace.name }} / {{ t.name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1;min-width:220px">
+        <div class="muted" style="font-weight:800">Atribuições</div>
+        <input class="input" name="assigned_to" placeholder="Ex: Amanda, Renata" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1;min-width:180px">
+        <div class="muted" style="font-weight:800">Prazo</div>
+        <input class="input" type="date" name="due_date" />
+      </div>
+      <div style="flex:1;min-width:180px">
+        <div class="muted" style="font-weight:800">Prioridade</div>
+        <select class="input" name="priority">
+          <option value="alta">Alta</option>
+          <option value="media" selected>Média</option>
+          <option value="baixa">Baixa</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <div class="muted" style="font-weight:800">Descrição</div>
+      <div id="editor" style="height:320px;background:#fff;border:1px solid var(--border);border-radius:10px"></div>
+      <textarea id="id_description" name="description" style="display:none"></textarea>
+      <div class="muted" style="margin-top:6px">Editor gratuito (Quill). Permite colar imagens e faz upload automático.</div>
+    </div>
+
+    <div>
+      <div class="muted" style="font-weight:800">Anexos</div>
+      <input class="input" type="file" name="attachments" multiple />
+    </div>
+
+    <button class="btn primary" type="submit">Criar tarefa</button>
+  </form>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<script>
+  function getCookie(name){
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  async function uploadImage(file){
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/tasks/editor/upload-image/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: formData,
+      credentials: 'same-origin'
+    });
+
+    if (!res.ok) throw new Error('Falha no upload');
+    const json = await res.json();
+    if (!json.location) throw new Error('Resposta inválida');
+    return json.location;
+  }
+
+  const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ]
+    }
+  });
+
+  // Botão de imagem (toolbar)
+  quill.getModule('toolbar').addHandler('image', function() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      try {
+        const url = await uploadImage(file);
+        const range = quill.getSelection(true) || { index: quill.getLength() };
+        quill.insertEmbed(range.index, 'image', url, 'user');
+      } catch (e) {
+        alert('Erro ao enviar imagem');
+      }
+    };
+  });
+
+  // Colar imagem (Ctrl+V)
+  quill.root.addEventListener('paste', async (e) => {
+    const items = (e.clipboardData || {}).items || [];
+    const imageItem = Array.from(items).find(i => i.type && i.type.startsWith('image/'));
+    if (!imageItem) return;
+
+    e.preventDefault();
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    try {
+      const url = await uploadImage(file);
+      const range = quill.getSelection(true) || { index: quill.getLength() };
+      quill.insertEmbed(range.index, 'image', url, 'user');
+    } catch (err) {
+      alert('Erro ao colar imagem');
+    }
+  });
+
+  // Antes de enviar, grava HTML no textarea
+  document.getElementById('task-form').addEventListener('submit', function(){
+    document.getElementById('id_description').value = quill.root.innerHTML;
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .kpi-strip{display:flex;gap:8px;overflow:auto;padding:2px 0 6px}
+  .kpi-chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;white-space:nowrap}
+  .kpi-chip b{font-size:13px}
+  .kpi-chip .n{font-weight:900;background:#f3e8ff;color:#6d28d9;padding:2px 8px;border-radius:999px}
+  .filters-card{padding:10px 12px;margin-bottom:12px}
+  .filters-grid{display:grid;grid-template-columns:1fr 180px 160px auto;gap:8px;align-items:end}
+  .filters-grid .btn{min-height:38px}
+  .filters-toggle{display:none}
+  @media (max-width: 900px){
+    .filters-grid{grid-template-columns:1fr;}
+    .filters-toggle{display:block}
+    .filters-compact{display:none}
+    details[open] .filters-compact{display:block;margin-top:8px}
+  }
+</style>
+
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">Dashboard de Demandas (Kanban)</div>
+    <div class="muted">Total de demandas: {{ total }}</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/settings/">Configurações</a>
+    <a class="btn secondary" href="/teams/settings/">Workspaces & Equipes</a>
+    <a class="btn secondary" href="/tasks/workload/">Carga de trabalho</a>
+    <a class="btn secondary" href="/tasks/notifications/">Notificações</a>
+    <a class="btn primary" href="/tasks/new/">+ Nova tarefa</a>
+    <a class="btn secondary" href="/clients/">Clientes</a>
+  </div>
+</div>
+
+<div class="kpi-strip" aria-label="Resumo por estágio">
+  {% for s in stage_cards %}
+  <div class="kpi-chip">
+    <b>{{ s.name }}</b>
+    <span class="n">{{ s.count }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card filters-card">
+  <details>
+    <summary class="filters-toggle muted" style="font-weight:800;cursor:pointer">Filtros</summary>
+    <form method="get" class="filters-grid filters-compact">
+      <div>
+        <div class="muted" style="font-weight:800">Buscar</div>
+        <input class="input" name="q" value="{{ q }}" placeholder="Título..." />
+      </div>
+      <div>
+        <div class="muted" style="font-weight:800">Estágio</div>
+        <select class="input" name="stage">
+          <option value="">Todos</option>
+          {% for s in stages %}
+            <option value="{{ s.id }}" {% if stage_id == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <div class="muted" style="font-weight:800">Prioridade</div>
+        <select class="input" name="priority">
+          <option value="">Todas</option>
+          <option value="alta" {% if priority == 'alta' %}selected{% endif %}>Alta</option>
+          <option value="media" {% if priority == 'media' %}selected{% endif %}>Média</option>
+          <option value="baixa" {% if priority == 'baixa' %}selected{% endif %}>Baixa</option>
+        </select>
+      </div>
+      <button class="btn primary" type="submit">Filtrar</button>
+    </form>
+  </details>
+  <form method="get" class="filters-grid" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap" onsubmit="return true">
+    <div style="flex:1;min-width:220px">
+      <div class="muted" style="font-weight:800">Buscar</div>
+      <input class="input" name="q" value="{{ q }}" placeholder="Título..." />
+    </div>
+    <div style="min-width:180px">
+      <div class="muted" style="font-weight:800">Workspace</div>
+      <select class="input" name="workspace">
+        <option value="">Todos</option>
+        {% for w in workspaces %}
+          <option value="{{ w.id }}" {% if workspace_id == w.id|stringformat:'s' %}selected{% endif %}>{{ w.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="min-width:180px">
+      <div class="muted" style="font-weight:800">Equipe</div>
+      <select class="input" name="team">
+        <option value="">Todas</option>
+        {% for tm in teams %}
+          <option value="{{ tm.id }}" {% if team_id == tm.id|stringformat:'s' %}selected{% endif %}>{{ tm.workspace.name }} / {{ tm.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="min-width:180px">
+      <div class="muted" style="font-weight:800">Estágio</div>
+      <select class="input" name="stage">
+        <option value="">Todos</option>
+        {% for s in stages %}
+          <option value="{{ s.id }}" {% if stage_id == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="min-width:160px">
+      <div class="muted" style="font-weight:800">Prioridade</div>
+      <select class="input" name="priority">
+        <option value="">Todas</option>
+        <option value="alta" {% if priority == 'alta' %}selected{% endif %}>Alta</option>
+        <option value="media" {% if priority == 'media' %}selected{% endif %}>Média</option>
+        <option value="baixa" {% if priority == 'baixa' %}selected{% endif %}>Baixa</option>
+      </select>
+    </div>
+    <button class="btn primary" type="submit">Filtrar</button>
+  </form>
+</div>
+
+<div id="kanban-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
+  {% for s in stages %}
+  <div class="card stage-column" data-stage-id="{{ s.id }}" style="min-width:320px;max-width:320px;padding:10px;display:flex;flex-direction:column;gap:8px">
+    <div style="font-weight:900">{{ s.name }}</div>
+    <div class="muted">Arraste tarefas para mudar de estágio</div>
+
+    <div class="dropzone" style="min-height:120px;display:grid;gap:8px">
+      {% for t in tasks %}
+        {% if t.stage_id == s.id %}
+        <div class="task-card card" draggable="true" data-task-id="{{ t.id }}" style="padding:10px;border-radius:12px;cursor:grab">
+          <a href="/tasks/{{ t.id }}/" style="font-weight:800;display:block">{{ t.title }}</a>
+          <div class="muted">Cliente: {{ t.client_name|default:'—' }}</div>
+          <div class="muted">Workspace: {{ t.workspace.name|default:'—' }} • Equipe: {{ t.team.name|default:'—' }}</div>
+          <div class="muted">Prioridade: {{ t.priority|title }}{% if t.due_date %} • Prazo: {{ t.due_date }}{% endif %}</div>
+
+          <div class="row" style="margin-top:8px;gap:6px">
+            <form method="post" action="/tasks/{{ t.id }}/reorder/" style="margin:0">
+              {% csrf_token %}
+              <input type="hidden" name="direction" value="up" />
+              <button class="btn secondary" type="submit" style="padding:6px 10px;min-height:30px">↑</button>
+            </form>
+            <form method="post" action="/tasks/{{ t.id }}/reorder/" style="margin:0">
+              {% csrf_token %}
+              <input type="hidden" name="direction" value="down" />
+              <button class="btn secondary" type="submit" style="padding:6px 10px;min-height:30px">↓</button>
+            </form>
+          </div>
+
+          <details style="margin-top:8px">
+            <summary class="muted" style="cursor:pointer">Mover (mobile)</summary>
+            <form method="post" action="/tasks/{{ t.id }}/move/" class="row" style="margin-top:6px;align-items:end">
+              {% csrf_token %}
+              <select class="input" name="stage_id" style="min-width:150px">
+                {% for st in stages %}
+                  <option value="{{ st.id }}" {% if st.id == t.stage_id %}selected{% endif %}>{{ st.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn primary" type="submit" style="padding:6px 10px;min-height:30px">OK</button>
+            </form>
+          </details>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+(function(){
+  let dragged = null;
+
+  function getCookie(name){
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  document.querySelectorAll('.task-card').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      dragged = card;
+      card.style.opacity = '0.6';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.style.opacity = '1';
+    });
+  });
+
+  document.querySelectorAll('.dropzone').forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.style.outline = '2px dashed #7c3aed';
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.style.outline = 'none';
+    });
+    zone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      zone.style.outline = 'none';
+      if (!dragged) return;
+
+      const column = zone.closest('.stage-column');
+      const stageId = column.getAttribute('data-stage-id');
+      const taskId = dragged.getAttribute('data-task-id');
+
+      zone.appendChild(dragged);
+
+      const form = new FormData();
+      form.append('stage_id', stageId);
+
+      try {
+        await fetch(`/tasks/${taskId}/move/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          },
+          body: form
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

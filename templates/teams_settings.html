@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">Workspaces & Equipes</div>
+    <div class="muted">Estrutura de colaboração estilo ClickUp</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/">Dashboard</a>
+    <a class="btn secondary" href="/tasks/workload/">Carga de trabalho</a>
+    <a class="btn secondary" href="/tasks/settings/">Config. Tarefas</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="card" style="padding:14px;flex:1;min-width:320px">
+    <div style="font-weight:800;margin-bottom:10px">Novo Workspace</div>
+    <form method="post" style="display:grid;gap:8px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_workspace" />
+      <input class="input" name="name" placeholder="Nome do workspace" required />
+      <textarea class="input" name="description" placeholder="Descrição"></textarea>
+      <button class="btn primary" type="submit">Criar workspace</button>
+    </form>
+
+    <div style="margin-top:12px;display:grid;gap:8px">
+      {% for w in workspaces %}
+      <div class="card" style="padding:10px">
+        <form method="post" class="row" style="gap:8px;align-items:end;flex-wrap:wrap">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit_workspace" />
+          <input type="hidden" name="workspace_id" value="{{ w.id }}" />
+          <div style="flex:1;min-width:180px">
+            <div class="muted" style="font-weight:800">Nome</div>
+            <input class="input" name="name" value="{{ w.name }}" required />
+          </div>
+          <div style="flex:2;min-width:220px">
+            <div class="muted" style="font-weight:800">Descrição</div>
+            <input class="input" name="description" value="{{ w.description|default:'' }}" />
+          </div>
+          <button class="btn secondary" type="submit">Salvar</button>
+        </form>
+        <form method="post" style="margin-top:8px">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_workspace" />
+          <input type="hidden" name="workspace_id" value="{{ w.id }}" />
+          <button class="btn danger" type="submit" onclick="return confirm('Excluir workspace e equipes vinculadas?')">Excluir</button>
+        </form>
+      </div>
+      {% empty %}<div class="muted">Sem workspaces.</div>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px;flex:1;min-width:320px">
+    <div style="font-weight:800;margin-bottom:10px">Nova Equipe</div>
+    <form method="post" style="display:grid;gap:8px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_team" />
+      <select class="input" name="workspace_id" required>
+        <option value="">Selecione workspace</option>
+        {% for w in workspaces %}<option value="{{ w.id }}">{{ w.name }}</option>{% endfor %}
+      </select>
+      <input class="input" name="name" placeholder="Nome da equipe" required />
+      <textarea class="input" name="description" placeholder="Descrição"></textarea>
+      <button class="btn primary" type="submit">Criar equipe</button>
+    </form>
+
+    <div style="margin-top:12px;display:grid;gap:8px">
+      {% for t in teams %}
+      <div class="card" style="padding:10px">
+        <form method="post" class="row" style="gap:8px;align-items:end;flex-wrap:wrap">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit_team" />
+          <input type="hidden" name="team_id" value="{{ t.id }}" />
+          <div style="min-width:200px;flex:1">
+            <div class="muted" style="font-weight:800">Workspace</div>
+            <select class="input" name="workspace_id" required>
+              {% for w in workspaces %}
+                <option value="{{ w.id }}" {% if w.id == t.workspace_id %}selected{% endif %}>{{ w.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="min-width:200px;flex:1">
+            <div class="muted" style="font-weight:800">Nome da equipe</div>
+            <input class="input" name="name" value="{{ t.name }}" required />
+          </div>
+          <div style="min-width:220px;flex:2">
+            <div class="muted" style="font-weight:800">Descrição</div>
+            <input class="input" name="description" value="{{ t.description|default:'' }}" />
+          </div>
+          <button class="btn secondary" type="submit">Salvar</button>
+        </form>
+        <form method="post" style="margin-top:8px">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_team" />
+          <input type="hidden" name="team_id" value="{{ t.id }}" />
+          <button class="btn danger" type="submit" onclick="return confirm('Excluir equipe e vínculos/membros?')">Excluir</button>
+        </form>
+      </div>
+      {% empty %}<div class="muted">Sem equipes.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card" style="padding:14px;margin-top:12px">
+  <div style="font-weight:800;margin-bottom:10px">Membros de Equipe</div>
+  <form method="post" class="row" style="align-items:end;gap:8px;flex-wrap:wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_member" />
+    <select class="input" name="team_id" required style="min-width:240px">
+      <option value="">Selecione equipe</option>
+      {% for t in teams %}<option value="{{ t.id }}">{{ t.workspace.name }} / {{ t.name }}</option>{% endfor %}
+    </select>
+    <select class="input" name="user_id" required style="min-width:240px">
+      <option value="">Selecione usuário</option>
+      {% for u in users %}<option value="{{ u.id }}">{{ u.name }} ({{ u.email }})</option>{% endfor %}
+    </select>
+    <select class="input" name="role" style="min-width:160px">
+      <option value="colaborador">Colaborador</option>
+      <option value="gerente">Gerente</option>
+      <option value="admin_workspace">Admin Workspace</option>
+    </select>
+    <button class="btn primary" type="submit">Adicionar membro</button>
+  </form>
+
+  <div style="margin-top:12px;display:grid;gap:8px">
+    {% for m in members %}
+    <div class="card" style="padding:10px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <b>{{ m.team.workspace.name }} / {{ m.team.name }}</b>
+        <div class="muted">User ID: {{ m.user_id }} • Papel: {{ m.role }}</div>
+      </div>
+      <form method="post" style="margin:0">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="remove_member" />
+        <input type="hidden" name="member_id" value="{{ m.id }}" />
+        <button class="btn danger" type="submit">Remover</button>
+      </form>
+    </div>
+    {% empty %}<div class="muted">Sem membros vinculados.</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

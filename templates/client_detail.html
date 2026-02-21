@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="top">
+    <div>
+      <a class="btn secondary" href="/clients/">← Voltar</a>
+      <div style="font-weight:900;font-size:20px;margin-top:6px">{{ client.name }}</div>
+      <div class="muted">{{ client.status|default:"—" }}{% if client.cnpj %} • CNPJ: {{ client.cnpj }}{% endif %}</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <a class="btn secondary" href="/clients/{{ client.id }}/edit/">Editar</a>
+      <form action="/clients/{{ client.id }}/delete/" method="post" style="margin:0" onsubmit="return confirm('Deletar este cliente?');">
+        {% csrf_token %}
+        <button class="btn secondary" type="submit">Deletar</button>
+      </form>
+      <form action="/logout/" method="post" style="margin:0">
+        {% csrf_token %}
+        <button class="btn secondary" type="submit">Sair</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px">
+    <div style="display:grid;gap:10px">
+      <div>
+        <div class="muted" style="font-weight:900">Notas</div>
+        <div style="white-space:pre-wrap">{{ client.notes|default:"" }}</div>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(15,23,42,0.10)" />
+
+      <div class="card" style="padding:12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(124,58,237,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="font-weight:900;font-size:15px;color:#5b21b6">📇 Contatos</div>
+          <div class="muted" style="font-size:12px">Pessoas e canais de contato</div>
+        </div>
+
+        <form action="/clients/{{ client.id }}/contacts/new/" method="post" class="card" style="padding:10px;border-radius:14px;margin-top:8px">
+          {% csrf_token %}
+          <div class="row">
+            <div style="flex:1;min-width:180px"><input class="input" name="name" placeholder="Nome" required></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="role" placeholder="Cargo"></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="department" placeholder="Depto"></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div style="flex:1;min-width:180px"><input class="input" name="phone" placeholder="Telefone"></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="email" placeholder="Email"></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="instagram" placeholder="Instagram"></div>
+          </div>
+          <div style="margin-top:8px"><input class="input" name="notes" placeholder="Notas"></div>
+          <div style="margin-top:8px"><button class="btn primary" type="submit">+ Adicionar contato</button></div>
+        </form>
+
+        <div style="display:grid;gap:8px;margin-top:10px">
+          {% for c in contacts %}
+            <div class="card" style="padding:10px;border-radius:14px">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:900">{{ c.name }}</div>
+                  <div style="display:grid;grid-template-columns:120px 1fr;gap:4px 10px;margin-top:6px">
+                    <div class="muted" style="font-weight:900">Cargo</div><div>{{ c.role|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Depto</div><div>{{ c.department|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Telefone</div><div>{{ c.phone|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Email</div><div>{{ c.email|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Instagram</div><div>{{ c.instagram|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Notas</div><div>{{ c.notes|default:"—" }}</div>
+                  </div>
+                </div>
+                <form action="/contacts/{{ c.id }}/delete/" method="post" style="margin:0" onsubmit="return confirm('Deletar contato?');">
+                  {% csrf_token %}
+                  <button class="btn secondary" type="submit">Deletar</button>
+                </form>
+              </div>
+            </div>
+          {% empty %}
+            <div class="muted">Nenhum contato.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card" style="padding:12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(124,58,237,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="font-weight:900;font-size:15px;color:#5b21b6">🔐 Credenciais</div>
+          <div class="muted" style="font-size:12px">Acessos e observações</div>
+        </div>
+
+        <form action="/clients/{{ client.id }}/creds/new/" method="post" class="card" style="padding:10px;border-radius:14px;margin-top:8px">
+          {% csrf_token %}
+          <div class="row">
+            <div style="flex:1;min-width:180px"><input class="input" name="site" placeholder="Sistema/Site" required></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="usuario" placeholder="Usuário"></div>
+            <div style="flex:1;min-width:180px"><input class="input" name="senha" placeholder="Senha"></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div style="flex:1;min-width:180px"><input class="input" name="token" placeholder="Token"></div>
+            <div style="flex:2;min-width:220px"><input class="input" name="obs" placeholder="Obs"></div>
+          </div>
+          <div style="margin-top:8px"><button class="btn primary" type="submit">+ Adicionar credencial</button></div>
+        </form>
+
+        <div style="display:grid;gap:8px;margin-top:10px">
+          {% for c in creds %}
+            <div class="card" style="padding:10px;border-radius:14px">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:900">{{ c.site }}</div>
+                  <div style="display:grid;grid-template-columns:120px 1fr;gap:4px 10px;margin-top:6px">
+                    <div class="muted" style="font-weight:900">Usuário</div><div>{{ c.usuario|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Senha</div><div>{{ c.senha|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Token</div><div>{{ c.token|default:"—" }}</div>
+                    <div class="muted" style="font-weight:900">Obs</div><div>{{ c.obs|default:"—" }}</div>
+                  </div>
+                </div>
+                <form action="/creds/{{ c.id }}/delete/" method="post" style="margin:0" onsubmit="return confirm('Deletar credencial?');">
+                  {% csrf_token %}
+                  <button class="btn secondary" type="submit">Deletar</button>
+                </form>
+              </div>
+            </div>
+          {% empty %}
+            <div class="muted">Nenhuma credencial.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card" style="padding:12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(124,58,237,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="font-weight:900;font-size:15px;color:#5b21b6">🔗 Links</div>
+          <div class="muted" style="font-size:12px">Páginas e recursos do cliente</div>
+        </div>
+
+        <form action="/clients/{{ client.id }}/links/new/" method="post" class="card" style="padding:10px;border-radius:14px;margin-top:8px">
+          {% csrf_token %}
+          <div class="row">
+            <div style="flex:1;min-width:220px"><input class="input" name="name" placeholder="Nome" required></div>
+            <div style="flex:2;min-width:260px"><input class="input" name="url" placeholder="URL" required></div>
+          </div>
+          <div style="margin-top:8px"><button class="btn primary" type="submit">+ Adicionar link</button></div>
+        </form>
+
+        <div style="display:grid;gap:8px;margin-top:10px">
+          {% for l in links %}
+            <div class="card" style="padding:10px;border-radius:14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+              <a style="display:block" href="{{ l.url }}" target="_blank" rel="noreferrer">
+                <div style="font-weight:900">{{ l.name }}</div>
+                <div style="display:grid;grid-template-columns:120px 1fr;gap:4px 10px;margin-top:6px">
+                  <div class="muted" style="font-weight:900">URL</div><div>{{ l.url }}</div>
+                </div>
+              </a>
+              <form action="/links/{{ l.id }}/delete/" method="post" style="margin:0" onsubmit="return confirm('Deletar link?');">
+                {% csrf_token %}
+                <button class="btn secondary" type="submit">Deletar</button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="muted">Nenhum link.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

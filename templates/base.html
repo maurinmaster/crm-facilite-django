@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CRM Facilite</title>
+  <style>
+    :root{
+      --bg:#f4f4fa;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --primary:#7c3aed;
+      --danger:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1200px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .muted{color:var(--muted)}
+    .input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff}
+    .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none}
+    .btn.primary{background:linear-gradient(180deg,#8b5cf6,#6d28d9);color:#fff}
+    .btn.secondary{background:#fff;border:1px solid var(--border);color:#4b5563}
+    .btn.danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:14px}
+    .badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:900}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    (function(){
+      function ensureTopBadge(){
+        const top = document.querySelector('.top > div:last-child');
+        if(!top) return null;
+        let link = document.getElementById('notif-link');
+        if(link) return link;
+
+        link = document.createElement('a');
+        link.id = 'notif-link';
+        link.className = 'btn secondary';
+        link.href = '/tasks/notifications/';
+        link.innerHTML = 'Notificações <span id="notif-badge" class="badge" style="display:none">0</span>';
+        top.prepend(link);
+        return link;
+      }
+
+      async function loadUnread(){
+        try {
+          const link = ensureTopBadge();
+          if(!link) return;
+          const res = await fetch('/tasks/notifications/unread-count/', {credentials:'same-origin'});
+          if(!res.ok) return;
+          const data = await res.json();
+          const n = Number(data.count || 0);
+          const badge = document.getElementById('notif-badge');
+          if(!badge) return;
+          badge.textContent = String(n);
+          badge.style.display = n > 0 ? 'inline-flex' : 'none';
+        } catch(e) {}
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadUnread);
+      } else {
+        loadUnread();
+      }
+      setInterval(loadUnread, 30000);
+    })();
+  </script>
+</body>
+</html>

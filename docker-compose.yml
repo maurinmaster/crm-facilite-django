@@ -1,0 +1,19 @@
+services:
+  facilite-crm-django:
+    build: .
+    container_name: facilite-crm-django
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - proxy
+    expose:
+      - "8000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+networks:
+  proxy:
+    external: true

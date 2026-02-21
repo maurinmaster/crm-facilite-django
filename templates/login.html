@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:460px;margin:40px auto;padding:18px">
+  <div style="font-size:22px;font-weight:900;margin-bottom:6px">CRM Facilite</div>
+  <div class="muted" style="margin-bottom:12px">Faça login para continuar</div>
+  {% if error %}<div class="muted" style="color:#b91c1c;font-weight:700;margin-bottom:10px">{{ error }}</div>{% endif %}
+  <form method="post" style="display:grid;gap:10px">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    <input class="input" type="email" name="email" placeholder="Email" required />
+    <input class="input" type="password" name="password" placeholder="Senha" required />
+    <button class="btn primary" type="submit">Entrar</button>
+  </form>
+</div>
+{% endblock %}

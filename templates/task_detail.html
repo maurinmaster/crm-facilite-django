@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">{{ task.title }}</div>
+    <div class="muted">Cliente: {{ task.client_obj.name|default:'—' }} • Prioridade: {{ task.priority|title }}</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/">Dashboard</a>
+    <a class="btn secondary" href="/tasks/new/">+ Nova</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="card" style="padding:14px;flex:2;min-width:320px">
+    <div style="font-weight:800;margin-bottom:6px">Descrição</div>
+    <div>{% if task.description %}{{ task.description|safe }}{% else %}—{% endif %}</div>
+
+    <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)" />
+    <div style="font-weight:800;margin-bottom:6px">Comentários</div>
+    <form method="post" style="display:grid;gap:8px;margin-bottom:10px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="comment" />
+      <textarea class="input" name="comment" rows="3" placeholder="Adicionar comentário..."></textarea>
+      <button class="btn primary" type="submit">Comentar</button>
+    </form>
+    <div style="display:grid;gap:8px">
+      {% for c in comments %}
+      <div class="card" style="padding:10px">
+        <div>{{ c.comment|linebreaksbr }}</div>
+        <div class="muted">{{ c.author|default:'Sistema' }} • {{ c.created_at }}</div>
+      </div>
+      {% empty %}<div class="muted">Sem comentários.</div>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px;flex:1;min-width:300px">
+    <div style="font-weight:800;margin-bottom:8px">Fluxo</div>
+    <form method="post" class="row" style="align-items:end">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="stage" />
+      <div style="flex:1">
+        <select class="input" name="stage_id">
+          {% for s in stages %}
+            <option value="{{ s.id }}" {% if s.id == task.stage_id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn primary" type="submit">Mover</button>
+    </form>
+
+    <div style="margin-top:12px" class="muted">
+      <div><b>Workspace:</b> {{ task.workspace.name|default:'—' }}</div>
+      <div><b>Equipe:</b> {{ task.team.name|default:'—' }}</div>
+      <div><b>Atribuições:</b> {{ task.assigned_to|default:'—' }}</div>
+      <div><b>Prazo:</b> {{ task.due_date|default:'—' }}</div>
+    </div>
+
+    <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)" />
+    <div style="font-weight:800;margin-bottom:6px">Anexos</div>
+    <form method="post" enctype="multipart/form-data" style="display:grid;gap:8px;margin-bottom:10px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="attach" />
+      <input class="input" type="file" name="attachments" multiple />
+      <button class="btn primary" type="submit">Enviar</button>
+    </form>
+    <div style="display:grid;gap:6px">
+      {% for a in attachments %}
+        <a href="{{ a.file.url }}" target="_blank">{{ a.file.name }}</a>
+      {% empty %}<div class="muted">Sem anexos.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

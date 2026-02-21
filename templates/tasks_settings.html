@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">Configuração de Tarefas</div>
+    <div class="muted">Gerencie estágios e automações</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/">Dashboard</a>
+    <a class="btn secondary" href="/teams/settings/">Workspaces & Equipes</a>
+    <a class="btn secondary" href="/clients/">Clientes</a>
+  </div>
+</div>
+
+<div class="card" style="padding:14px;margin-bottom:12px">
+  <div style="font-weight:800;margin-bottom:6px">Sobre “grupo de trabalho” (modelo desejado)</div>
+  <div class="muted">
+    Nesta versão, removemos o cadastro simples de grupos. O conceito é tratado como
+    Workspaces + Equipes + Membros + Permissões.
+  </div>
+</div>
+
+<div class="row">
+  <div class="card" style="padding:14px;min-width:320px;flex:1">
+    <div style="font-weight:800;margin-bottom:10px">Estágios</div>
+    <form method="post" class="row" style="align-items:end">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_stage" />
+      <div style="flex:1;min-width:180px">
+        <div class="muted" style="font-weight:800">Nome</div>
+        <input class="input" name="name" required />
+      </div>
+      <div style="width:120px">
+        <div class="muted" style="font-weight:800">Ordem</div>
+        <input class="input" name="sort_order" type="number" value="0" />
+      </div>
+      <button class="btn primary" type="submit">Adicionar</button>
+    </form>
+
+    <div style="margin-top:12px;display:grid;gap:8px">
+      {% for s in stages %}
+      <div class="card" style="padding:10px;display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div><b>{{ s.name }}</b> <span class="muted">#{{ s.sort_order }}</span></div>
+        <form method="post" action="/tasks/settings/stages/{{ s.id }}/delete/" style="margin:0">
+          {% csrf_token %}
+          <button class="btn danger" type="submit">Excluir</button>
+        </form>
+      </div>
+      {% empty %}<div class="muted">Sem estágios.</div>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px;min-width:320px;flex:1">
+    <div style="font-weight:800;margin-bottom:10px">Nova Automação</div>
+    <form method="post" style="display:grid;gap:8px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_automation" />
+      <input class="input" name="name" placeholder="Nome da automação" required />
+
+      <div class="row">
+        <select class="input" name="workspace_id" style="flex:1;min-width:180px">
+          <option value="">Workspace (opcional)</option>
+          {% for w in workspaces %}<option value="{{ w.id }}">{{ w.name }}</option>{% endfor %}
+        </select>
+        <select class="input" name="team_id" style="flex:1;min-width:180px">
+          <option value="">Equipe (opcional)</option>
+          {% for t in teams %}<option value="{{ t.id }}">{{ t.workspace.name }} / {{ t.name }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="row">
+        <select class="input" name="trigger_from_stage_id" style="flex:1;min-width:180px">
+          <option value="">De estágio (qualquer)</option>
+          {% for s in stages %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+        <select class="input" name="trigger_to_stage_id" style="flex:1;min-width:180px">
+          <option value="">Para estágio (qualquer)</option>
+          {% for s in stages %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <select class="input" name="automation_action">
+        <option value="comment">Comentário automático</option>
+        <option value="notify">Notificação interna</option>
+      </select>
+
+      <textarea class="input" name="message_template" rows="3" placeholder="Ex: Tarefa {{task_title}} entrou em revisão."></textarea>
+      <button class="btn primary" type="submit">Criar automação</button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="padding:14px;margin-top:12px">
+  <div style="font-weight:800;margin-bottom:10px">Automações cadastradas</div>
+  <div style="display:grid;gap:8px">
+    {% for a in automations %}
+      <div class="card" style="padding:10px;display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div>
+          <b>{{ a.name }}</b>
+          <div class="muted">
+            {{ a.workspace.name|default:'Global' }} • {{ a.team.name|default:'Todas equipes' }} •
+            {{ a.trigger_from_stage.name|default:'Qualquer' }} → {{ a.trigger_to_stage.name|default:'Qualquer' }} •
+            {{ a.action }}
+          </div>
+          {% if a.message_template %}<div class="muted">{{ a.message_template }}</div>{% endif %}
+        </div>
+        <form method="post" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_automation" />
+          <input type="hidden" name="automation_id" value="{{ a.id }}" />
+          <button class="btn {% if a.active %}secondary{% else %}primary{% endif %}" type="submit">
+            {% if a.active %}Desativar{% else %}Ativar{% endif %}
+          </button>
+        </form>
+      </div>
+    {% empty %}
+      <div class="muted">Sem automações.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card" style="padding:14px;margin-top:12px">
+  <div style="font-weight:800;margin-bottom:10px">Recorrência de tarefas</div>
+  <form method="post" class="row" style="gap:8px;align-items:end;flex-wrap:wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_recurrence" />
+    <input class="input" name="name" placeholder="Nome da regra" required style="min-width:220px" />
+    <select class="input" name="source_task_id" required style="min-width:320px">
+      <option value="">Tarefa base</option>
+      {% for t in task_sources %}<option value="{{ t.id }}">#{{ t.id }} - {{ t.title }}</option>{% endfor %}
+    </select>
+    <select class="input" name="frequency" style="min-width:140px">
+      <option value="daily">Diária</option>
+      <option value="weekly" selected>Semanal</option>
+      <option value="monthly">Mensal</option>
+    </select>
+    <input class="input" name="interval" type="number" min="1" value="1" style="width:90px" />
+    <button class="btn primary" type="submit">Criar regra</button>
+  </form>
+
+  <form method="post" style="margin-top:8px">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="run_recurrence_now" />
+    <button class="btn secondary" type="submit">Executar recorrências vencidas agora</button>
+  </form>
+
+  <div style="margin-top:12px;display:grid;gap:8px">
+    {% for r in recurrence_rules %}
+      <div class="card" style="padding:10px;display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div>
+          <b>{{ r.name }}</b>
+          <div class="muted">{{ r.source_task.title }} • {{ r.frequency }} / {{ r.interval }} • próxima: {{ r.next_run_at|default:'—' }}</div>
+        </div>
+        <form method="post" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_recurrence" />
+          <input type="hidden" name="rule_id" value="{{ r.id }}" />
+          <button class="btn {% if r.active %}secondary{% else %}primary{% endif %}" type="submit">
+            {% if r.active %}Desativar{% else %}Ativar{% endif %}
+          </button>
+        </form>
+      </div>
+    {% empty %}
+      <div class="muted">Sem regras de recorrência.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

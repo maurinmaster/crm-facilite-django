@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top">
+  <div>
+    <div style="font-weight:900;font-size:20px">Carga de Trabalho por Equipe</div>
+    <div class="muted">Visão consolidada operacional</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn secondary" href="/tasks/">Kanban</a>
+    <a class="btn secondary" href="/teams/settings/">Workspaces & Equipes</a>
+  </div>
+</div>
+
+<div class="card" style="padding:12px;margin-bottom:12px">
+  <form method="get" class="row" style="align-items:end;gap:10px">
+    <div>
+      <div class="muted" style="font-weight:800">Período</div>
+      <select class="input" name="days">
+        <option value="7" {% if days == 7 %}selected{% endif %}>Últimos 7 dias</option>
+        <option value="15" {% if days == 15 %}selected{% endif %}>Últimos 15 dias</option>
+        <option value="30" {% if days == 30 %}selected{% endif %}>Últimos 30 dias</option>
+        <option value="90" {% if days == 90 %}selected{% endif %}>Últimos 90 dias</option>
+      </select>
+    </div>
+    <button class="btn primary" type="submit">Aplicar</button>
+  </form>
+</div>
+
+<div class="card" style="padding:12px;margin-bottom:12px">
+  <div style="font-weight:800;margin-bottom:8px">Gráfico (volume por equipe)</div>
+  <div style="display:grid;gap:8px">
+    {% for r in rows %}
+    <div>
+      <div class="muted" style="margin-bottom:4px"><b>{{ r.workspace }} / {{ r.team }}</b> — {{ r.total }} demandas</div>
+      <div style="background:#ececf3;border-radius:999px;height:12px;overflow:hidden">
+        <div style="width: {{ r.pct }}%;background:linear-gradient(90deg,#7c3aed,#a78bfa);height:12px"></div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="muted">Sem dados no período.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card" style="padding:12px">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Workspace</th>
+        <th>Equipe</th>
+        <th>Total</th>
+        <th>Na fila</th>
+        <th>Em produção</th>
+        <th>Concluídas</th>
+        <th>Atrasadas</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.workspace }}</td>
+        <td>{{ r.team }}</td>
+        <td>{{ r.total }}</td>
+        <td>{{ r.fila }}</td>
+        <td>{{ r.em_producao }}</td>
+        <td>{{ r.done }}</td>
+        <td>{{ r.overdue }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="muted">Sem dados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

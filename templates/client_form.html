@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="top">
+    <div>
+      <a class="btn secondary" href="/clients/">← Voltar</a>
+      <div style="font-weight:900;font-size:20px;margin-top:6px">{{ title }}</div>
+      <div class="muted">Cliente</div>
+    </div>
+    <form action="/logout/" method="post">
+      {% csrf_token %}
+      <button class="btn secondary" type="submit">Sair</button>
+    </form>
+  </div>
+
+  <div class="card" style="padding:14px">
+    <form method="post" style="display:grid;gap:10px">
+      {% csrf_token %}
+      <div>
+        <div class="muted" style="font-weight:800">Nome</div>
+        <input class="input" name="name" value="{{ client.name|default:'' }}" required />
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:220px">
+          <div class="muted" style="font-weight:800">CNPJ</div>
+          <input class="input" name="cnpj" value="{{ client.cnpj|default:'' }}" />
+        </div>
+        <div style="flex:1;min-width:220px">
+          <div class="muted" style="font-weight:800">Status</div>
+          <input class="input" name="status" value="{{ client.status|default:'' }}" placeholder="ativo/pendente/inativo" />
+        </div>
+        <div style="flex:1;min-width:220px">
+          <div class="muted" style="font-weight:800">Tipo</div>
+          <input class="input" name="type" value="{{ client.type|default:'' }}" placeholder="pessoa_fisica/pessoa_juridica" />
+        </div>
+      </div>
+      <div>
+        <div class="muted" style="font-weight:800">Notas</div>
+        <textarea class="input" name="notes" style="min-height:120px">{{ client.notes|default:'' }}</textarea>
+      </div>
+
+      {% if error %}<div style="color:#dc2626;font-weight:800">{{ error }}</div>{% endif %}
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center">
+        <a class="btn secondary" href="/clients/">Cancelar</a>
+        <button class="btn primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
