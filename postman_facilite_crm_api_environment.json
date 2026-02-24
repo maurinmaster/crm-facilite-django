@@ -1,0 +1,45 @@
+{
+  "id": "facilite-crm-local-env",
+  "name": "Facilite CRM Local",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "contact_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "credential_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "link_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-02-24T00:00:00.000Z",
+  "_postman_exported_using": "Jarbas/OpenClaw"
+}

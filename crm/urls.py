@@ -1,10 +1,22 @@
 from django.urls import path
-from . import views
+from . import views, api
 
 urlpatterns = [
     path('', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+
+    # API (mesmo banco do app, via ORM Django)
+    path('api/health/', api.api_health, name='api_health'),
+    path('api/me/', api.api_me, name='api_me'),
+    path('api/clients/', api.api_clients, name='api_clients'),
+    path('api/clients/<str:client_id>/', api.api_client_detail, name='api_client_detail'),
+    path('api/clients/<str:client_id>/contacts/', api.api_client_contacts, name='api_client_contacts'),
+    path('api/contacts/<str:contact_id>/', api.api_contact_detail, name='api_contact_detail'),
+    path('api/clients/<str:client_id>/credentials/', api.api_client_credentials, name='api_client_credentials'),
+    path('api/credentials/<str:credential_id>/', api.api_credential_detail, name='api_credential_detail'),
+    path('api/clients/<str:client_id>/links/', api.api_client_links, name='api_client_links'),
+    path('api/links/<str:link_id>/', api.api_link_detail, name='api_link_detail'),
 
     path('export.xlsx', views.export_xlsx, name='export_xlsx'),
 

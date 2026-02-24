@@ -1,0 +1,291 @@
+{
+  "info": {
+    "name": "Facilite CRM Django API",
+    "description": "Coleção de testes da API do facilite-crm-django (mesmo banco do app).\n\nDefina as variáveis da collection:\n- base_url (ex: http://127.0.0.1:8000)\n- token (token da tabela sessions)\n- client_id\n- contact_id\n- credential_id\n- link_id",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" },
+    { "key": "client_id", "value": "" },
+    { "key": "contact_id", "value": "" },
+    { "key": "credential_id", "value": "" },
+    { "key": "link_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/health/", "host": ["{{base_url}}"], "path": ["api", "health", ""] }
+      }
+    },
+    {
+      "name": "Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/me/", "host": ["{{base_url}}"], "path": ["api", "me", ""] }
+      }
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "List Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/clients/?q=&limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients", ""],
+              "query": [
+                { "key": "q", "value": "" },
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente API Teste\",\n  \"cnpj\": \"00.000.000/0001-00\",\n  \"status\": \"ativo\",\n  \"type\": \"agencia\",\n  \"notes\": \"Criado via Postman\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/clients/", "host": ["{{base_url}}"], "path": ["api", "clients", ""] }
+          }
+        },
+        {
+          "name": "Get Client",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", ""] }
+          }
+        },
+        {
+          "name": "Update Client (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Atualizado via Postman PATCH\"\n}" },
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", ""] }
+          }
+        },
+        {
+          "name": "Delete Client (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", ""] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "List Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/contacts/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "contacts", ""] }
+          }
+        },
+        {
+          "name": "Create Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Contato\",\n  \"role\": \"Gestor\",\n  \"department\": \"Comercial\",\n  \"phone\": \"+55 11 99999-9999\",\n  \"email\": \"joao@cliente.com\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/contacts/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "contacts", ""] }
+          }
+        },
+        {
+          "name": "Get Contact",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/contacts/{{contact_id}}/", "host": ["{{base_url}}"], "path": ["api", "contacts", "{{contact_id}}", ""] }
+          }
+        },
+        {
+          "name": "Update Contact (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+55 11 98888-8888\"\n}" },
+            "url": { "raw": "{{base_url}}/api/contacts/{{contact_id}}/", "host": ["{{base_url}}"], "path": ["api", "contacts", "{{contact_id}}", ""] }
+          }
+        },
+        {
+          "name": "Delete Contact (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/contacts/{{contact_id}}/", "host": ["{{base_url}}"], "path": ["api", "contacts", "{{contact_id}}", ""] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credentials",
+      "item": [
+        {
+          "name": "List Credentials",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/credentials/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "credentials", ""] }
+          }
+        },
+        {
+          "name": "Create Credential",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"site\": \"https://painel.exemplo.com\",\n  \"usuario\": \"usuario_teste\",\n  \"senha\": \"senha_teste\",\n  \"token\": \"token_teste\",\n  \"obs\": \"Criada via Postman\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/credentials/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "credentials", ""] }
+          }
+        },
+        {
+          "name": "Get Credential",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/credentials/{{credential_id}}/", "host": ["{{base_url}}"], "path": ["api", "credentials", "{{credential_id}}", ""] }
+          }
+        },
+        {
+          "name": "Update Credential (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"obs\": \"Atualizada via Postman\"\n}" },
+            "url": { "raw": "{{base_url}}/api/credentials/{{credential_id}}/", "host": ["{{base_url}}"], "path": ["api", "credentials", "{{credential_id}}", ""] }
+          }
+        },
+        {
+          "name": "Delete Credential (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/credentials/{{credential_id}}/", "host": ["{{base_url}}"], "path": ["api", "credentials", "{{credential_id}}", ""] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Links",
+      "item": [
+        {
+          "name": "List Links",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/links/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "links", ""] }
+          }
+        },
+        {
+          "name": "Create Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Drive do Cliente\",\n  \"url\": \"https://drive.google.com/...\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/clients/{{client_id}}/links/", "host": ["{{base_url}}"], "path": ["api", "clients", "{{client_id}}", "links", ""] }
+          }
+        },
+        {
+          "name": "Get Link",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/links/{{link_id}}/", "host": ["{{base_url}}"], "path": ["api", "links", "{{link_id}}", ""] }
+          }
+        },
+        {
+          "name": "Update Link (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Drive Oficial\"\n}" },
+            "url": { "raw": "{{base_url}}/api/links/{{link_id}}/", "host": ["{{base_url}}"], "path": ["api", "links", "{{link_id}}", ""] }
+          }
+        },
+        {
+          "name": "Delete Link (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/links/{{link_id}}/", "host": ["{{base_url}}"], "path": ["api", "links", "{{link_id}}", ""] }
+          }
+        }
+      ]
+    }
+  ]
+}
